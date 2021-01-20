@@ -71,12 +71,12 @@ func (l *LTM) parseFrame(cmd string, serialBuffer []byte) {
 		l.uavBat = uint16(serialBuffer[0])
 		l.uavBat |= uint16(serialBuffer[1]) << 8
 
-		log.Printf("vbat: %d", l.uavBat)
+		//log.Printf("vbat: %d", l.uavBat)
 	} else if cmd == gFrame {
 		l.uavLat = toUInt32(serialBuffer, 0)
 		l.uavLon = toUInt32(serialBuffer, 4)
 
-		log.Printf("lat: %d, lon: %d", l.uavLat, l.uavLon)
+		//log.Printf("lat: %d, lon: %d", l.uavLat, l.uavLon)
 	}
 }
 

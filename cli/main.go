@@ -11,5 +11,10 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	lPort.Read()
+	go lPort.Read()
+
+	for {
+		lat, lon := lPort.GetGPS()
+		log.Printf("lat: %d, lon: %d", lat, lon)
+	}
 }
