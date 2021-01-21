@@ -3,7 +3,8 @@ package main
 import (
 	"flag"
 	"log"
-	"quad"
+
+	"github.com/bolsunovskyi/ltm-go"
 )
 
 var (
