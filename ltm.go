@@ -36,8 +36,8 @@ type LTM struct {
 	uavAmp uint16
 
 	//gFrame
-	uavLat uint32
-	uavLon uint32
+	uavLat int32
+	uavLon int32
 }
 
 func (l LTM) GetBat() uint16 {
@@ -48,7 +48,7 @@ func (l LTM) GetAmp() uint16 {
 	return l.uavAmp
 }
 
-func (l LTM) GetGPS() (lat, lon uint32) {
+func (l LTM) GetGPS() (lat, lon int32) {
 	return l.uavLat, l.uavLon
 }
 
@@ -81,8 +81,8 @@ func (l *LTM) parseFrame(cmd string, serialBuffer []byte) {
 
 		//log.Printf("vbat: %d", l.uavBat)
 	} else if cmd == gFrame {
-		l.uavLat = toUInt32(serialBuffer, 0)
-		l.uavLon = toUInt32(serialBuffer, 4)
+		l.uavLat = int32(toUInt32(serialBuffer, 0))
+		l.uavLon = int32(toUInt32(serialBuffer, 4))
 
 		//log.Printf("lat: %d, lon: %d", l.uavLat, l.uavLon)
 	}
