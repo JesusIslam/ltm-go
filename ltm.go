@@ -1,8 +1,9 @@
 package ltm
 
 import (
-	"github.com/tarm/serial"
 	"log"
+
+	"github.com/tarm/serial"
 )
 
 const (
@@ -25,19 +26,40 @@ const (
 	oFrame = "O"
 	nFrame = "N"
 	xFrame = "X"
+
+	SatFix2D = 2
+	SatFix3D = 3
 )
 
 type LTM struct {
-	port *serial.Port
+	port   *serial.Port
 	cState int
 
 	//sFrame
-	uavBat uint16
-	uavAmp uint16
+	uavBat               uint16
+	uavAmp               uint16
+	uavFixType           uint8 // GPS lock 0-1=no fix, 2=2D, 3=3D
+	uavSatellitesVisible uint8
 
 	//gFrame
 	uavLat int32
 	uavLon int32
+}
+
+func (l LTM) IsSat2DFix() bool {
+	return l.uavFixType == SatFix2D
+}
+
+func (l LTM) IsSat3DFix() bool {
+	return l.uavFixType == SatFix3D
+}
+
+func (l LTM) GetSatFix() uint8 {
+	return l.uavFixType
+}
+
+func (l LTM) GetSatellitesVisible() uint8 {
+	return l.uavSatellitesVisible
 }
 
 func (l LTM) GetBat() uint16 {
@@ -60,7 +82,7 @@ func Make(port string, baud int) (*LTM, error) {
 	}
 
 	return &LTM{
-		port: s,
+		port:   s,
 		cState: serialStateIDLE,
 	}, nil
 }
@@ -78,26 +100,26 @@ func (l *LTM) parseFrame(cmd string, serialBuffer []byte) {
 	if cmd == sFrame {
 		l.uavBat = uint16(serialBuffer[0])
 		l.uavBat |= uint16(serialBuffer[1]) << 8
-
-		//log.Printf("vbat: %d", l.uavBat)
 	} else if cmd == gFrame {
 		l.uavLat = int32(toUInt32(serialBuffer, 0))
 		l.uavLon = int32(toUInt32(serialBuffer, 4))
 
-		//log.Printf("lat: %d, lon: %d", l.uavLat, l.uavLon)
+		satsFix := uint8(serialBuffer[13])
+		l.uavSatellitesVisible = (satsFix >> 2) & 0xFF
+		l.uavFixType = satsFix & 0x3
 	}
 }
 
 func (l *LTM) Read() {
 	buf := make([]byte, 1)
 	var (
-		frameLength uint8
-		cmd string
+		frameLength   uint8
+		cmd           string
 		receiverIndex uint8
-		rcvChecksum uint8
+		rcvChecksum   uint8
 	)
 
-	serialBuffer := make([]byte, gFrameLength - 4)
+	serialBuffer := make([]byte, gFrameLength-4)
 
 	for {
 		n, err := l.port.Read(buf)
@@ -155,7 +177,7 @@ func (l *LTM) Read() {
 					rcvChecksum ^= buf[0]
 				}
 
-				if receiverIndex == frameLength - 4 {
+				if receiverIndex == frameLength-4 {
 					l.cState = serialStateIDLE
 
 					if rcvChecksum == 0 {
