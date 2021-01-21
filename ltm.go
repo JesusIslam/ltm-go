@@ -40,6 +40,14 @@ type LTM struct {
 	uavLon uint32
 }
 
+func (l LTM) GetBat() uint16 {
+	return l.uavBat
+}
+
+func (l LTM) GetAmp() uint16 {
+	return l.uavAmp
+}
+
 func (l LTM) GetGPS() (lat, lon uint32) {
 	return l.uavLat, l.uavLon
 }
